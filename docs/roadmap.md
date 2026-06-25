@@ -12,17 +12,24 @@ this repo to wasm and run them on each other. We get there incrementally.
 - [x] First compiler path: **Go → wasm** (`wasip1`) via `go_cross_binary`.
 - [x] First end-to-end slice: `examples/hello-go-wasm` compiled to wasm and run
       on wazero, all through `bazel run`.
+- [x] Second compiler: **TinyGo** (`tinygo_wasm` rule), fetched hermetically,
+      producing much smaller modules. Example: `examples/hello-tinygo-wasm`.
+- [x] **Run an interpreter in wasm**: `interpreters/golua`, a Lua 5.2 VM
+      (go-lua) compiled to wasm with both standard Go and TinyGo, running
+      scripts on wazero.
 
 ## Next
 
 - [ ] **More compilers → wasm**, each with a runnable example:
-      TinyGo, Rust (`wasm32-wasip1`), AssemblyScript, Emscripten (C/C++).
+      Rust (`wasm32-wasip1`), AssemblyScript, Emscripten (C/C++).
 - [ ] **More runtimes** as `bazel run` targets: Wasmtime, Wasmer, WasmEdge,
       WAMR. Track which need system toolchains vs. fetch prebuilt.
-- [ ] **Run interpreters in wasm**: pick an interpreter (e.g. a small Lua, Lox,
-      or Scheme) compiled to wasm, then run scripts through it on a runtime.
+- [ ] **More interpreters in wasm**: a Lox or Scheme; richer Lua demos (read
+      scripts from argv with FS mounts — already supported by `wazero-run -dir`).
 - [ ] **Tools on wasm**: wabt/wasm-tools for inspect/validate/optimize; wire as
       Bazel actions.
+- [ ] Generalize `tinygo_wasm` deps beyond stdlib-only (transitive
+      `tinygo_go_package` generation).
 - [ ] Catalog UX: a small report/query CLI and/or a static site generated from
       `data/catalog.json`.
 

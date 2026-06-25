@@ -1,0 +1,8 @@
+# TinyGo toolchain integration. The TinyGo distribution is fetched as the
+# @tinygo_linux_amd64 external repository (see MODULE.bazel + tinygo.BUILD);
+# defs.bzl provides the tinygo_wasm() rule.
+
+exports_files([
+    "defs.bzl",
+    "tinygo.BUILD",
+])

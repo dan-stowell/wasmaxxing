@@ -12,3 +12,14 @@ wazero_run(
     mounts = ["interpreters/golua/examples:/scripts"],
     visibility = ["//visibility:public"],
 )
+
+# Same fib.lua demo, but using the TinyGo-compiled (smaller) Lua interpreter:
+#   bazel run //interpreters/golua:run_fib_tinygo
+wazero_run(
+    name = "run_fib_tinygo",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_tinygo_wasm",
+    module_args = ["/scripts/fib.lua"],
+    mounts = ["interpreters/golua/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)

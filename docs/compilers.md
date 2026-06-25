@@ -31,6 +31,61 @@ file bazel-bin/path/to/app_wasm   # WebAssembly (wasm) binary module
 
 Worked end-to-end example: [`examples/hello-go-wasm`](../examples/hello-go-wasm).
 
+## Go → wasm (TinyGo)
+
+[TinyGo](https://tinygo.org) is an alternative Go compiler with an LLVM backend
+and a slimmed-down runtime/stdlib. It produces much smaller wasm modules than
+standard Go (e.g. ~0.67 MB vs ~2.6 MB for hello-world; ~2.2 MB vs ~4.5 MB for
+the Lua interpreter).
+
+The toolchain is fetched hermetically as a prebuilt release (an `http_archive`
+in `MODULE.bazel`) and driven by the `tinygo_wasm` rule in
+[`compilers/tinygo/defs.bzl`](../compilers/tinygo/defs.bzl). It uses rules_go's
+Go SDK — **no system Go install required**.
+
+```python
+load("//compilers/tinygo:defs.bzl", "tinygo_wasm")
+
+tinygo_wasm(
+    name = "hello_tinygo_wasm",
+    srcs = ["main.go"],
+    target = "wasip1",   # or "wasm" for a JS host
+)
+```
+
+```sh
+bazel build //examples/hello-tinygo-wasm:hello_tinygo_wasm
+bazel run   //examples/hello-tinygo-wasm:run     # build + run on wazero
+```
+
+### Third-party dependencies
+
+TinyGo's module mode would need a network-fetching `go` at build time, breaking
+hermeticity. Instead, `tinygo_wasm` builds in GOPATH mode (`GO111MODULE=off`)
+and stages dependency sources from rules_go `go_library` targets via
+`tinygo_go_package`:
+
+```python
+load("//compilers/tinygo:defs.bzl", "tinygo_go_package", "tinygo_wasm")
+
+tinygo_go_package(
+    name = "go_lua_pkg",
+    lib = "@com_github_shopify_go_lua//:go-lua",  # reuses the same sources
+)
+
+tinygo_wasm(
+    name = "golua_tinygo_wasm",
+    srcs = ["main.go"],
+    deps = [":go_lua_pkg"],
+)
+```
+
+This reuses the *exact* (patched) dependency sources from the standard build, so
+both Go and TinyGo see identical code. Currently limited to stdlib-only
+dependencies; transitive third-party deps would each need a `tinygo_go_package`.
+Worked example: [`interpreters/golua`](../interpreters/golua) builds the Lua
+interpreter with both standard Go and TinyGo.
+
 ## Adding another compiler
 
 1. Pick a target from the catalog (`kind == "compiler"`). High-value,

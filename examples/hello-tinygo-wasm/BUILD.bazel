@@ -1,0 +1,31 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//compilers/tinygo:defs.bzl", "tinygo_wasm")
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+# Compile to wasm with TinyGo (small modules, LLVM backend).
+tinygo_wasm(
+    name = "hello_tinygo_wasm",
+    srcs = ["main.go"],
+    target = "wasip1",
+    visibility = ["//visibility:public"],
+)
+
+# Build the TinyGo wasm module and run it on wazero in one step:
+#   bazel run //examples/hello-tinygo-wasm:run
+wazero_run(
+    name = "run",
+    module = ":hello_tinygo_wasm",
+)
+
+go_library(
+    name = "hello-tinygo-wasm_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/examples/hello-tinygo-wasm",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "hello-tinygo-wasm",
+    embed = [":hello-tinygo-wasm_lib"],
+    visibility = ["//visibility:public"],
+)

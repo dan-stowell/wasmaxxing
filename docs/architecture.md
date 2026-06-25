@@ -52,10 +52,19 @@ first is **wazero** (pure Go, zero system dependencies), exposing:
 See [runtimes.md](runtimes.md).
 
 ### Compilers (`compilers/`) and examples (`examples/`)
-Compilers that target wasm are wired up as Bazel rules/macros. The
-`examples/` tree demonstrates full source → wasm → run pipelines. The first is
-`examples/hello-go-wasm`: Go cross-compiled to wasm via `go_cross_binary` and
-run on wazero. See [compilers.md](compilers.md).
+Compilers that target wasm are wired up as Bazel rules/macros:
+- standard Go via rules_go `go_cross_binary` (`//platforms:wasip1_wasm`).
+- **TinyGo** via the `tinygo_wasm` rule in `compilers/tinygo`, with the
+  toolchain fetched hermetically as a prebuilt release and driven by rules_go's
+  Go SDK (no system Go).
+
+The `examples/` tree demonstrates full source → wasm → run pipelines
+(`hello-go-wasm`, `hello-tinygo-wasm`). See [compilers.md](compilers.md).
+
+### Interpreters (`interpreters/`)
+Interpreters compiled to wasm, run on a runtime. `interpreters/golua` is a Lua
+5.2 VM (go-lua) built with both standard Go and TinyGo. See
+[interpreters.md](interpreters.md).
 
 ### Platforms (`platforms/`)
 Reusable Bazel `platform()` targets. `//platforms:wasip1_wasm` selects the Go

@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library", "go_test")
+load("//compilers/tinygo:defs.bzl", "tinygo_go_package", "tinygo_wasm")
 
 go_library(
     name = "golua_lib",
@@ -28,4 +29,21 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":golua_lib"],
     deps = ["@com_github_shopify_go_lua//:go-lua"],
+)
+
+# Adapt the go-lua library into a TinyGo dependency (same patched sources).
+tinygo_go_package(
+    name = "go_lua_pkg",
+    lib = "@com_github_shopify_go_lua//:go-lua",
+)
+
+# The Lua interpreter compiled to wasm by TinyGo instead of the standard Go
+# compiler -- roughly half the module size. Built in GOPATH mode with go-lua
+# staged from the same sources.
+tinygo_wasm(
+    name = "golua_tinygo_wasm",
+    srcs = ["main.go"],
+    target = "wasip1",
+    visibility = ["//visibility:public"],
+    deps = [":go_lua_pkg"],
 )

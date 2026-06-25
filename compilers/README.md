@@ -1,8 +1,9 @@
 # compilers/
 
-Toolchains that emit wasm, wired up as Bazel rules/macros. See
-[../docs/compilers.md](../docs/compilers.md).
+Toolchains that emit wasm, wired up as Bazel rules/macros.
 
-The first compiler path (Go → wasm via rules_go) lives in
-[../examples/hello-go-wasm](../examples/hello-go-wasm) and
-[../platforms](../platforms). Language-specific toolchains added here over time.
+- Go → wasm via rules_go `go_cross_binary` (see [../platforms](../platforms)).
+- [tinygo](tinygo) — the TinyGo toolchain (`tinygo_wasm` rule), fetched
+  hermetically; produces much smaller modules.
+
+See [../docs/compilers.md](../docs/compilers.md).

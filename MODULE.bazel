@@ -12,6 +12,20 @@ bazel_dep(name = "platforms", version = "1.1.0")
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(version = "1.26.4")
 
+# --- TinyGo toolchain (downloaded as a prebuilt release) -------------------
+# TinyGo is fetched as a hermetic external repository. It is driven by the
+# tinygo_wasm rule (see //compilers/tinygo) using rules_go's Go SDK, so no
+# system Go install is required.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "tinygo_linux_amd64",
+    urls = ["https://github.com/tinygo-org/tinygo/releases/download/v0.41.1/tinygo0.41.1.linux-amd64.tar.gz"],
+    sha256 = "e156d1d93a376eef639a4143d13be07e8c463fb6cf2d7d447698ed4474d23e91",
+    strip_prefix = "tinygo",
+    build_file = "//compilers/tinygo:tinygo.BUILD",
+)
+
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 
