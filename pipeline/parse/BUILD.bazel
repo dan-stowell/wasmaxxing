@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "parse",
+    srcs = ["parse.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/pipeline/parse",
+    visibility = ["//visibility:public"],
+    deps = ["//pipeline/catalog"],
+)
+
+go_test(
+    name = "parse_test",
+    srcs = ["parse_test.go"],
+    embed = [":parse"],
+    deps = ["//pipeline/catalog"],
+)

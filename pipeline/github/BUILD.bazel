@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "github",
+    srcs = ["github.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/pipeline/github",
+    visibility = ["//visibility:public"],
+    deps = ["//pipeline/catalog"],
+)

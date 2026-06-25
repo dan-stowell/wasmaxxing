@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "enrich-catalog_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/pipeline/cmd/enrich-catalog",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pipeline/catalog",
+        "//pipeline/github",
+    ],
+)
+
+go_binary(
+    name = "enrich-catalog",
+    embed = [":enrich-catalog_lib"],
+    visibility = ["//visibility:public"],
+)
