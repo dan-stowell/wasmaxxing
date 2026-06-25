@@ -9,15 +9,35 @@ hermetic and location-independent:
     wazero_run(
         name = "run_hello",
         module = "//examples/hello-go-wasm:hello_wasm",
-        args = ["world"],
+        module_args = ["world"],
     )
 
 Then: `bazel run //examples/hello-go-wasm:run_hello`.
+
+To run a guest that reads files, mount a directory and add the files to data:
+
+    wazero_run(
+        name = "run_script",
+        module = "//interpreters/golua/cmd/golua:golua_wasm",
+        data = ["examples/fib.lua"],
+        mounts = ["interpreters/golua/examples:/scripts"],
+        module_args = ["/scripts/fib.lua"],
+    )
 """
 
 def _wazero_run_impl(ctx):
     module = ctx.file.module
     runner = ctx.executable._runner
+
+    # -dir HOST:GUEST mounts, with HOST resolved against runfiles at runtime.
+    mount_args = []
+    for m in ctx.attr.mounts:
+        host, _, guest = m.partition(":")
+        if not guest:
+            guest = host
+        mount_args.append("-dir")
+        mount_args.append("$base/" + host + ":" + guest)
+    mounts = " ".join([repr(a) for a in mount_args])
 
     # Build a wrapper script that invokes the runner on the module via its
     # runfiles path, forwarding extra command-line arguments.
@@ -38,15 +58,16 @@ if [[ -f "$RUNFILES/_main/$RUNNER" ]]; then
 else
   base="$(dirname "$0")"
 fi
-exec "$base/$RUNNER" "$base/$MODULE" {extra} "$@"
+exec "$base/$RUNNER" {mounts} "$base/$MODULE" {extra} "$@"
 """.format(
             runner = runner.short_path,
             module = module.short_path,
+            mounts = mounts,
             extra = extra,
         ),
     )
 
-    runfiles = ctx.runfiles(files = [module])
+    runfiles = ctx.runfiles(files = [module] + ctx.files.data)
     runfiles = runfiles.merge(ctx.attr._runner[DefaultInfo].default_runfiles)
     return [DefaultInfo(executable = script, runfiles = runfiles)]
 
@@ -62,6 +83,13 @@ wazero_run = rule(
         ),
         "module_args": attr.string_list(
             doc = "Arguments passed to the module before any `bazel run -- ...` args.",
+        ),
+        "data": attr.label_list(
+            allow_files = True,
+            doc = "Extra files to include in runfiles (e.g. scripts to mount).",
+        ),
+        "mounts": attr.string_list(
+            doc = "Directories to mount as HOST[:GUEST]; HOST is a runfiles path.",
         ),
         "_runner": attr.label(
             default = "//runtimes/wazero/cmd/wazero-run",

@@ -1,0 +1,44 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 94c42e7..1d09d43 100755
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -28,6 +28,7 @@ go_library(
+         "tag_methods.go",
+         "types.go",
+         "undump.go",
++        "clock_wasm.go",
+         "unix.go",
+         "vm.go",
+     ],
+diff --git a/clock_wasm.go b/clock_wasm.go
+new file mode 100644
+index 0000000..01ea87b
+--- /dev/null
++++ b/clock_wasm.go
+@@ -0,0 +1,15 @@
++//go:build wasip1 || js
++// +build wasip1 js
++
++package lua
++
++import "time"
++
++// processStart anchors a wall-clock approximation of os.clock() on WebAssembly
++// targets, where syscall.Getrusage (CPU time) is unavailable.
++var processStart = time.Now()
++
++func clock(l *State) int {
++	l.PushNumber(time.Since(processStart).Seconds())
++	return 1
++}
+diff --git a/unix.go b/unix.go
+index 0c65651..c631c20 100644
+--- a/unix.go
++++ b/unix.go
+@@ -1,4 +1,5 @@
+-// +build !windows
++//go:build !windows && !wasip1 && !js
++// +build !windows,!wasip1,!js
+ 
+ package lua
+ 

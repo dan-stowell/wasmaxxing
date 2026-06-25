@@ -1,0 +1,14 @@
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+# Run the Lua interpreter (compiled to wasm) on the wazero runtime, executing
+# the bundled fib.lua from a mounted directory:
+#   bazel run //interpreters/golua:run_fib
+#   bazel run //interpreters/golua:run_fib -- /scripts/fib.lua 15
+wazero_run(
+    name = "run_fib",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_wasm",
+    module_args = ["/scripts/fib.lua"],
+    mounts = ["interpreters/golua/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)

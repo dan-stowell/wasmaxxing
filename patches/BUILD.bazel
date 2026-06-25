@@ -1,0 +1,4 @@
+# Patches applied to third-party dependencies via go_deps.module_override
+# in MODULE.bazel. Exported so the module extension can reference them.
+
+exports_files(glob(["*.patch"]))

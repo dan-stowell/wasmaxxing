@@ -1,0 +1,31 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library", "go_test")
+
+go_library(
+    name = "golua_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/interpreters/golua/cmd/golua",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_shopify_go_lua//:go-lua"],
+)
+
+go_binary(
+    name = "golua",
+    embed = [":golua_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# The Lua interpreter cross-compiled to GOOS=wasip1 GOARCH=wasm: an entire
+# Lua 5.2 VM as a single .wasm module, runnable on any WASI runtime.
+go_cross_binary(
+    name = "golua_wasm",
+    platform = "//platforms:wasip1_wasm",
+    target = ":golua",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "golua_test",
+    srcs = ["main_test.go"],
+    embed = [":golua_lib"],
+    deps = ["@com_github_shopify_go_lua//:go-lua"],
+)

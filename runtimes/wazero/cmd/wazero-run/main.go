@@ -16,17 +16,29 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"github.com/tetratelabs/wazero/sys"
 )
 
+// mountFlag collects repeatable -dir HOST[:GUEST] filesystem mounts.
+type mountFlag []string
+
+func (m *mountFlag) String() string { return strings.Join(*m, ",") }
+func (m *mountFlag) Set(v string) error {
+	*m = append(*m, v)
+	return nil
+}
+
 func main() {
 	os.Exit(run())
 }
 
 func run() int {
+	var mounts mountFlag
+	flag.Var(&mounts, "dir", "mount a host directory into the module as HOST[:GUEST] (repeatable)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: wazero-run [flags] MODULE.wasm [args...]\n\n")
 		flag.PrintDefaults()
@@ -52,6 +64,16 @@ func run() int {
 
 	wasi_snapshot_preview1.MustInstantiate(ctx, r)
 
+	// Assemble the guest filesystem from -dir mounts.
+	fsConfig := wazero.NewFSConfig()
+	for _, m := range mounts {
+		host, guest := m, m
+		if i := strings.IndexByte(m, ':'); i >= 0 {
+			host, guest = m[:i], m[i+1:]
+		}
+		fsConfig = fsConfig.WithDirMount(host, guest)
+	}
+
 	// argv[0] is the module name; the rest are user-provided args.
 	argv := append([]string{filepath.Base(modPath)}, modArgs...)
 	config := wazero.NewModuleConfig().
@@ -63,7 +85,7 @@ func run() int {
 		WithSysNanotime().
 		WithSysNanosleep().
 		WithRandSource(nil). // nil => crypto/rand
-		WithFSConfig(wazero.NewFSConfig())
+		WithFSConfig(fsConfig)
 
 	// Inherit the host environment so modules can read env vars.
 	for _, kv := range os.Environ() {
