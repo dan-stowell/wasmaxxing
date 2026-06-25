@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library")
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+go_library(
+    name = "hello-go-wasm_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/examples/hello-go-wasm",
+    visibility = ["//visibility:private"],
+)
+
+# Native binary (host platform) -- useful for sanity-checking the program logic.
+go_binary(
+    name = "hello-go-wasm",
+    embed = [":hello-go-wasm_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# The same program cross-compiled to GOOS=wasip1 GOARCH=wasm.
+# Produces a .wasm module runnable on any WASI preview-1 runtime, e.g.:
+#   bazel run //runtimes/wazero/cmd/wazero-run -- \
+#     bazel-bin/examples/hello-go-wasm/hello.wasm
+go_cross_binary(
+    name = "hello_wasm",
+    platform = "//platforms:wasip1_wasm",
+    target = ":hello-go-wasm",
+    visibility = ["//visibility:public"],
+)
+
+# Convenience target: build the wasm module and run it on wazero in one step:
+#   bazel run //examples/hello-go-wasm:run
+wazero_run(
+    name = "run",
+    module = ":hello_wasm",
+    module_args = ["wasmaxxing"],
+)

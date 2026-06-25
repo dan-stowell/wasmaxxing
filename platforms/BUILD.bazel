@@ -1,0 +1,17 @@
+# Reusable Bazel platform definitions for WebAssembly targets.
+#
+# wasip1_wasm corresponds to Go's GOOS=wasip1 GOARCH=wasm target and, more
+# generally, to a 32-bit WASI (preview 1) module. Build any go_binary for it via
+# go_cross_binary(..., platform = "//platforms:wasip1_wasm").
+
+package(default_visibility = ["//visibility:public"])
+
+platform(
+    name = "wasip1_wasm",
+    constraint_values = [
+        # rules_go selects its Go toolchain based on these GOOS/GOARCH
+        # constraint values (not the generic @platforms//os:wasi ones).
+        "@rules_go//go/toolchain:wasip1",
+        "@rules_go//go/toolchain:wasm",
+    ],
+)

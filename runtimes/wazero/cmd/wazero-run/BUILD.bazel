@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "wazero-run_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/runtimes/wazero/cmd/wazero-run",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_tetratelabs_wazero//:wazero",
+        "@com_github_tetratelabs_wazero//imports/wasi_snapshot_preview1",
+        "@com_github_tetratelabs_wazero//sys",
+    ],
+)
+
+go_binary(
+    name = "wazero-run",
+    embed = [":wazero-run_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,4 @@
+# wazero: a zero-dependency, pure-Go WebAssembly runtime.
+# See defs.bzl for the wazero_run() macro and cmd/wazero-run for the CLI.
+
+exports_files(["defs.bzl"])
