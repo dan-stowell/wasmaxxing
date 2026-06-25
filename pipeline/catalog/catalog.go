@@ -69,11 +69,19 @@ type GitHubInfo struct {
 	Language      string `json:"language,omitempty"`
 	License       string `json:"license,omitempty"`
 	Archived      bool   `json:"archived"`
+	CreatedAt     string `json:"created_at,omitempty"`
 	PushedAt      string `json:"pushed_at,omitempty"`
 	DefaultBranch string `json:"default_branch,omitempty"`
 	Homepage      string `json:"homepage,omitempty"`
 	Topics        []string `json:"topics,omitempty"`
 	FetchedAt     string `json:"fetched_at,omitempty"`
+
+	// Deep metrics (populated only by enrich -deep). These are approximate
+	// totals derived from the GitHub API's paginated Link headers.
+	Commits      int `json:"commits,omitempty"`
+	Contributors int `json:"contributors,omitempty"`
+	Releases     int `json:"releases,omitempty"`
+
 	// Error records a fetch failure (e.g. 404, rate limited) without aborting.
 	Error string `json:"error,omitempty"`
 }
@@ -219,6 +227,35 @@ func Build(entries []Entry) *Catalog {
 		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
 	})
 	return &Catalog{Entries: out}
+}
+
+// MergeGitHubFrom carries forward GitHub enrichment from a previous catalog
+// for entries with a matching repo (case-insensitive). Returns the number of
+// entries that received preserved data. This lets build-catalog re-run without
+// discarding the (expensive) enrich step's results.
+func (c *Catalog) MergeGitHubFrom(prev *Catalog) int {
+	if prev == nil {
+		return 0
+	}
+	byRepo := map[string]*GitHubInfo{}
+	for i := range prev.Entries {
+		e := &prev.Entries[i]
+		if e.Repo != "" && e.GitHub != nil {
+			byRepo[strings.ToLower(e.Repo)] = e.GitHub
+		}
+	}
+	n := 0
+	for i := range c.Entries {
+		e := &c.Entries[i]
+		if e.GitHub != nil || e.Repo == "" {
+			continue
+		}
+		if g, ok := byRepo[strings.ToLower(e.Repo)]; ok {
+			e.GitHub = g
+			n++
+		}
+	}
+	return n
 }
 
 // Counts returns a per-kind tally.

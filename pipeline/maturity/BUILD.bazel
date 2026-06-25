@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "maturity",
+    srcs = ["maturity.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/pipeline/maturity",
+    visibility = ["//visibility:public"],
+    deps = ["//pipeline/catalog"],
+)
+
+go_test(
+    name = "maturity_test",
+    srcs = ["maturity_test.go"],
+    embed = [":maturity"],
+    deps = ["//pipeline/catalog"],
+)

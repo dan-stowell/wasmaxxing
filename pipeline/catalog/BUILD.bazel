@@ -2,7 +2,10 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "catalog",
-    srcs = ["catalog.go"],
+    srcs = [
+        "catalog.go",
+        "overrides.go",
+    ],
     importpath = "github.com/dan-stowell/wasmaxxing/pipeline/catalog",
     visibility = ["//visibility:public"],
 )

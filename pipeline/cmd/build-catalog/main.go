@@ -31,6 +31,7 @@ func workspaceRoot() string {
 
 func main() {
 	out := flag.String("out", "data/catalog.json", "output path relative to workspace root")
+	overridesPath := flag.String("overrides", "data/overrides.json", "hand-curated overrides path")
 	flag.Parse()
 
 	root := workspaceRoot()
@@ -48,9 +49,33 @@ func main() {
 	}
 
 	c := catalog.Build(all)
+
+	// Apply hand-curated corrections (fix kinds, supply missing repos, merge
+	// duplicates) after parsing the seed lists.
+	ovPath := *overridesPath
+	if !filepath.IsAbs(ovPath) {
+		ovPath = filepath.Join(root, ovPath)
+	}
+	if set, err := catalog.LoadOverridesFile(ovPath); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: overrides: %v\n", err)
+	} else if len(set.Overrides) > 0 {
+		c.Apply(set)
+		fmt.Fprintf(os.Stderr, "applied %d overrides\n", len(set.Overrides))
+	}
+
 	outPath := *out
 	if !filepath.IsAbs(outPath) {
 		outPath = filepath.Join(root, outPath)
+	}
+
+	// Preserve previously-fetched GitHub enrichment: rebuilding the catalog
+	// from the seed lists should not throw away enrich data. Carry GitHub info
+	// forward for entries whose repo is unchanged.
+	if prev, err := catalog.LoadFile(outPath); err == nil {
+		carried := c.MergeGitHubFrom(prev)
+		if carried > 0 {
+			fmt.Fprintf(os.Stderr, "preserved GitHub data for %d entries\n", carried)
+		}
 	}
 	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 		fmt.Fprintln(os.Stderr, "mkdir:", err)

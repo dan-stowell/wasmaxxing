@@ -43,6 +43,52 @@ license, last-push time, archived status, topics, and homepage. Failures (404,
 rate-limit) are recorded per-entry in `github.error` rather than aborting.
 Flags: `-limit N`, `-only-missing` (default true), `-delay`.
 
+### 3. Curated overrides
+
+The seed lists miscategorize some entries (e.g. wasm3 listed as a compiler) or
+lack a repo (e.g. wazero's URL is its homepage). `data/overrides.json` records
+hand corrections, applied by `build-catalog` after parsing:
+
+```jsonc
+{
+  "overrides": [
+    { "id": "wasm3",  "kind": "runtime", "repo": "wasm3/wasm3" },
+    { "id": "wazero", "repo": "tetratelabs/wazero",
+      "url": "https://github.com/tetratelabs/wazero" }
+  ]
+}
+```
+
+Each override may set `kind`, `repo`, `url`, `related_language`, `description`,
+`tags`, and `aliases` (other ids to fold into this one). Overridden entries are
+tagged `curated`. `build-catalog` also preserves previously-fetched GitHub data
+across rebuilds (matched by repo), so re-running it never discards enrichment.
+
+### 4. Rank by maturity
+
+```sh
+bazel run //pipeline/cmd/rank -- -kind runtime -top 15
+```
+
+Sorts entries by a transparent maturity heuristic (package
+`pipeline/maturity`). The score is a weighted sum of normalized sub-scores in
+[0,1]:
+
+| Signal | Weight | Source | Rationale |
+|--------|--------|--------|-----------|
+| Adoption | 0.30 | stars, forks (log-scaled) | real-world use |
+| Activity | 0.25 | days since last push (1-yr half-life) | still maintained? |
+| Longevity | 0.15 | repo age | proven over time |
+| Depth | 0.20 | commits, contributors, releases | sustained, multi-person, versioned |
+| Governance | 0.10 | has an OSI license | safe to depend on |
+
+Archived repositories are multiplied by 0.25 (explicitly end-of-life). Depth
+requires `enrich -deep`; without it, depth falls back to a forks estimate. The
+`rank` output shows the per-signal inputs so rankings are explainable.
+
+Example (runtimes, deep-enriched): Wasmtime, Wasmer, WasmEdge, wabt, WAMR,
+wazero, wasm3, wasmi lead the list.
+
 ## Catalog schema
 
 `data/catalog.json` is `{ "generated_at": ..., "entries": [Entry, ...] }`.

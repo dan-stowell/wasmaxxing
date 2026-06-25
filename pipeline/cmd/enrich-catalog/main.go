@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/dan-stowell/wasmaxxing/pipeline/catalog"
@@ -38,7 +39,16 @@ func main() {
 	limit := flag.Int("limit", 0, "max repos to fetch (0 = all)")
 	onlyMissing := flag.Bool("only-missing", true, "only fetch entries lacking GitHub data")
 	delay := flag.Duration("delay", 80*time.Millisecond, "delay between requests")
+	deep := flag.Bool("deep", false, "also fetch commit/contributor/release totals (3 extra requests/repo)")
+	kinds := flag.String("kinds", "", "comma-separated kinds to fetch (e.g. runtime); empty = all")
 	flag.Parse()
+
+	kindSet := map[string]bool{}
+	if *kinds != "" {
+		for _, k := range strings.Split(*kinds, ",") {
+			kindSet[strings.TrimSpace(k)] = true
+		}
+	}
 
 	root := workspaceRoot()
 	inPath := filepath.Join(root, *in)
@@ -68,7 +78,13 @@ func main() {
 		if e.Repo == "" {
 			continue
 		}
-		if *onlyMissing && e.GitHub != nil && e.GitHub.Error == "" {
+		if len(kindSet) > 0 && !kindSet[string(e.Kind)] {
+			continue
+		}
+		// In deep mode, re-fetch even already-enriched entries that lack deep
+		// metrics, so we can backfill commits/contributors/releases.
+		needsDeep := *deep && (e.GitHub == nil || e.GitHub.Commits == 0)
+		if *onlyMissing && e.GitHub != nil && e.GitHub.Error == "" && !needsDeep {
 			skipped++
 			continue
 		}
@@ -76,11 +92,17 @@ func main() {
 			break
 		}
 		info := client.Fetch(ctx, e.Repo)
+		if info.Error == "" && *deep {
+			client.FetchDeep(ctx, e.Repo, info)
+		}
 		e.GitHub = info
 		fetched++
 		if info.Error != "" {
 			failed++
 			fmt.Fprintf(os.Stderr, "  %-40s ERR %s\n", e.Repo, info.Error)
+		} else if *deep {
+			fmt.Fprintf(os.Stderr, "  %-40s %6d\u2b50 %5d commits %4d contrib %3d rel\n",
+				e.Repo, info.Stars, info.Commits, info.Contributors, info.Releases)
 		} else {
 			fmt.Fprintf(os.Stderr, "  %-40s %5d\u2b50\n", e.Repo, info.Stars)
 		}

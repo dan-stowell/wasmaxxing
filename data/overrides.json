@@ -1,0 +1,17 @@
+{
+  "_comment": "Hand-curated corrections applied by build-catalog after parsing the seed lists. Keyed by entry id (slug). Use this to fix miscategorizations, supply missing repos, or merge duplicates that the automatic dedupe misses. Each override may set: kind, repo, url, related_language, description, tags, and aliases (other ids to fold into this one).",
+  "overrides": [
+    {
+      "id": "wasm3",
+      "kind": "runtime",
+      "repo": "wasm3/wasm3",
+      "description": "A fast WebAssembly interpreter and the most universal wasm runtime."
+    },
+    {
+      "id": "wazero",
+      "kind": "runtime",
+      "repo": "tetratelabs/wazero",
+      "url": "https://github.com/tetratelabs/wazero"
+    }
+  ]
+}
