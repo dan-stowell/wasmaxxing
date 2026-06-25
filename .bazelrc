@@ -1,0 +1,11 @@
+# wasmaxxing bazel configuration
+common --enable_bzlmod
+
+# Keep build output quiet-ish but show test errors.
+test --test_output=errors
+
+# Stamp builds with version info (opt-in via --config=stamp).
+build:stamp --stamp
+
+# Allow local user overrides without touching version control.
+try-import %workspace%/.bazelrc.user

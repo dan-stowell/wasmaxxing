@@ -1,0 +1,12 @@
+# Bazel
+/bazel-*
+.bazelrc.user
+
+# Editor / OS
+*.swp
+.DS_Store
+
+# Python pipeline
+__pycache__/
+*.pyc
+.venv/
