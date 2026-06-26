@@ -1,0 +1,8 @@
+# WAMR `iwasm` (WebAssembly Micro Runtime, Bytecode Alliance, C). Fetched as the
+# @wamr external repo (see MODULE.bazel + wamr.BUILD); defs.bzl provides the
+# wamr_run macro.
+
+exports_files([
+    "defs.bzl",
+    "wamr.BUILD",
+])

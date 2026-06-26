@@ -1,4 +1,8 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library")
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
 load("//runtimes/wazero:defs.bzl", "wazero_run")
 
 go_library(
@@ -26,10 +30,39 @@ go_cross_binary(
     visibility = ["//visibility:public"],
 )
 
-# Convenience target: build the wasm module and run it on wazero in one step:
-#   bazel run //examples/hello-go-wasm:run
+# Convenience targets: build the wasm module and run it on each runtime in one
+# step. The very same module runs unmodified on five independent runtimes:
+#   bazel run //examples/hello-go-wasm:run            # wazero (pure Go)
+#   bazel run //examples/hello-go-wasm:run_wasmtime   # Wasmtime
+#   bazel run //examples/hello-go-wasm:run_wasmer     # Wasmer
+#   bazel run //examples/hello-go-wasm:run_wasmedge   # WasmEdge
+#   bazel run //examples/hello-go-wasm:run_wamr       # WAMR iwasm
 wazero_run(
     name = "run",
+    module = ":hello_wasm",
+    module_args = ["wasmaxxing"],
+)
+
+wasmtime_run(
+    name = "run_wasmtime",
+    module = ":hello_wasm",
+    module_args = ["wasmaxxing"],
+)
+
+wasmer_run(
+    name = "run_wasmer",
+    module = ":hello_wasm",
+    module_args = ["wasmaxxing"],
+)
+
+wasmedge_run(
+    name = "run_wasmedge",
+    module = ":hello_wasm",
+    module_args = ["wasmaxxing"],
+)
+
+wamr_run(
+    name = "run_wamr",
     module = ":hello_wasm",
     module_args = ["wasmaxxing"],
 )

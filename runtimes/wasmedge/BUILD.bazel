@@ -1,0 +1,7 @@
+# WasmEdge (CNCF, C++). Fetched as the @wasmedge external repo
+# (see MODULE.bazel + wasmedge.BUILD); defs.bzl provides the wasmedge_run macro.
+
+exports_files([
+    "defs.bzl",
+    "wasmedge.BUILD",
+])

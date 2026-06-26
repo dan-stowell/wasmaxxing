@@ -1,0 +1,5 @@
+# Shared runtime tooling. cli_run.bzl provides the cli_wasm_run rule used by the
+# external CLI runtimes (Wasmtime, Wasmer, WasmEdge, WAMR) to expose a uniform
+# `bazel run` UX, mirroring //runtimes/wazero's wazero_run macro.
+
+exports_files(["cli_run.bzl"])

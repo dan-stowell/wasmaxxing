@@ -1,0 +1,7 @@
+# Wasmer (wasmerio, Rust). Fetched as the @wasmer external repo
+# (see MODULE.bazel + wasmer.BUILD); defs.bzl provides the wasmer_run macro.
+
+exports_files([
+    "defs.bzl",
+    "wasmer.BUILD",
+])

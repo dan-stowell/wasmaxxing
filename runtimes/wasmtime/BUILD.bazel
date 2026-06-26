@@ -1,0 +1,7 @@
+# Wasmtime (Bytecode Alliance, Rust). Fetched as the @wasmtime external repo
+# (see MODULE.bazel + wasmtime.BUILD); defs.bzl provides the wasmtime_run macro.
+
+exports_files([
+    "defs.bzl",
+    "wasmtime.BUILD",
+])

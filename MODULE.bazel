@@ -26,6 +26,44 @@ http_archive(
     build_file = "//compilers/tinygo:tinygo.BUILD",
 )
 
+# --- Mature wasm runtimes (prebuilt CLI releases, linux/amd64) --------------
+# Each is fetched hermetically and wrapped by the cli_wasm_run rule (see
+# //runtimes:cli_run.bzl) into a `bazel run` target, mirroring wazero_run.
+# These are linux/amd64 binaries; cross-platform fetch is a future refinement.
+
+# Wasmtime -- Bytecode Alliance, Rust. Single static-ish CLI binary.
+http_archive(
+    name = "wasmtime",
+    urls = ["https://github.com/bytecodealliance/wasmtime/releases/download/v46.0.1/wasmtime-v46.0.1-x86_64-linux.tar.xz"],
+    sha256 = "9ae0b17ea298bcc52277a8208d6ab7fae8e1a89579672f9d82f9d86c116edb62",
+    strip_prefix = "wasmtime-v46.0.1-x86_64-linux",
+    build_file = "//runtimes/wasmtime:wasmtime.BUILD",
+)
+
+# Wasmer -- wasmerio, Rust. CLI under bin/wasmer.
+http_archive(
+    name = "wasmer",
+    urls = ["https://github.com/wasmerio/wasmer/releases/download/v7.1.0/wasmer-linux-amd64.tar.gz"],
+    sha256 = "61a6ad0f972ee0afbb7907ab90f1120e15d2e219ec1ce08999f2864e0b8c340f",
+    build_file = "//runtimes/wasmer:wasmer.BUILD",
+)
+
+# WasmEdge -- CNCF, C++. CLI under bin/wasmedge, shared lib under lib64/.
+http_archive(
+    name = "wasmedge",
+    urls = ["https://github.com/WasmEdge/WasmEdge/releases/download/0.17.0/WasmEdge-0.17.0-manylinux_2_28_x86_64.tar.gz"],
+    sha256 = "5d8165559c553eacc9b87db1799c2204e056db8609bedbf61eb29f8a21a42993",
+    build_file = "//runtimes/wasmedge:wasmedge.BUILD",
+)
+
+# WAMR `iwasm` -- WebAssembly Micro Runtime, Bytecode Alliance, C.
+http_archive(
+    name = "wamr",
+    urls = ["https://github.com/bytecodealliance/wasm-micro-runtime/releases/download/WAMR-2.4.4/iwasm-2.4.4-x86_64-ubuntu-22.04.tar.gz"],
+    sha256 = "ec60ff8daed26319dfc4371843c56ac2dfadd20e2218cbbca97aecb8b390b7a8",
+    build_file = "//runtimes/wamr:wamr.BUILD",
+)
+
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 
