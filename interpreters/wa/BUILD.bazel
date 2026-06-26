@@ -39,11 +39,11 @@ wasmtime_run(
     visibility = ["//visibility:public"],
 )
 
-# NOTE: the wa toolchain module is ~31 MB (a full compiler + embedded runtime).
-# Wasmer's ahead-of-time compiler takes many minutes on a module this large, and
-# WAMR's interpreter exhausts memory on it, so in practice this self-hosting demo
-# is comfortable on wazero, Wasmtime and WasmEdge. The wasmer/wamr targets are
-# kept for parity but are slow / may fail on this module size.
+# NOTE: the wa toolchain module is ~15 MB (a full compiler + embedded runtime).
+# Wasmer's ahead-of-time compiler takes minutes on a module this large, and
+# WAMR's loader can't handle its ~2800 functions, so in practice this
+# self-hosting demo is comfortable on wazero, Wasmtime and WasmEdge. The
+# wasmer/wamr targets are kept for parity but are slow / fail on this module.
 wasmer_run(
     name = "run_hello_wasmer",
     data = ["examples/hello.wa"],

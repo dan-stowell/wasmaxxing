@@ -77,10 +77,16 @@ bazel run //interpreters/wa:run_hello         # compile + run hello.wa, in wasm
 bazel run //interpreters/wa:build_hello_wat   # emit the compiled WAT, in wasm
 ```
 
-The toolchain module is ~31 MB (a full compiler + runtime), which runs
+The toolchain module is ~15 MB (a full compiler + runtime), which runs
 comfortably on **wazero, Wasmtime and WasmEdge**. Wasmer's ahead-of-time
-compiler is very slow on a module this size, and WAMR's interpreter exhausts
-memory, so those targets exist for parity but aren't the happy path here.
+compiler is very slow on a module this size, and WAMR's loader can't handle its
+~2800 functions, so those targets exist for parity but aren't the happy path.
+
+A TinyGo build was investigated to shrink it, but doesn't work: TinyGo compiles
+the toolchain (~11 MB) yet the result crashes at runtime — its conservative GC
+faults in `runtime.scanConservative` during the compiler's heavy string
+building, and `-gc=leaking` miscompiles wa's WAT parser. So wa stays on the
+standard Go compiler, which produces a correct module.
 
 ## Module sizes
 

@@ -67,8 +67,11 @@ AssemblyScript.
       backend + embedded wazero — compiles *and* runs Wa from inside a runtime,
       and emits WAT via `build_hello_wat`), and `interpreters/goja` (a Go JS
       engine running JavaScript in wasm). Both reuse the golua pattern. The wa
-      module is ~31 MB, so it's happy on wazero/Wasmtime/WasmEdge but slow on
-      Wasmer / too big for WAMR's interpreter.
+      module is ~15 MB, so it's happy on wazero/Wasmtime/WasmEdge but slow on
+      Wasmer / too big for WAMR's loader. A TinyGo build to shrink it was tried
+      and abandoned: TinyGo compiles wa (~11 MB) but the binary crashes
+      (conservative-GC fault in `runtime.scanConservative`; `-gc=leaking`
+      miscompiles the WAT parser), so wa stays on standard Go.
 - [ ] Compile a wasm runtime itself to wasm (e.g. a Go/Rust runtime via its own
       wasm target) and run a guest module under the wasm-compiled runtime
       (runtime-in-runtime).
