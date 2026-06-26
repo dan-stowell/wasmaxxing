@@ -22,10 +22,16 @@ this repo to wasm and run them on each other. We get there incrementally.
       shared `cli_wasm_run` rule. Every hello/golua example now runs unmodified
       on all five runtimes, including host directory mounts.
 
+- [x] **Third compiler: AssemblyScript** (`assemblyscript_wasm`). `asc` is
+      JavaScript, so a prebuilt Node.js and the asc/binaryen/long/wasi-shim npm
+      packages are fetched hermetically and assembled into a `node_modules/`
+      tree per action. `examples/hello-assemblyscript-wasm` runs on all five
+      runtimes.
+
 ## Next
 
 - [ ] **More compilers → wasm**, each with a runnable example:
-      Rust (`wasm32-wasip1`), AssemblyScript, Emscripten (C/C++).
+      Rust (`wasm32-wasip1`), Emscripten (C/C++).
 - [ ] **Cross-platform runtime fetch**: the prebuilt runtime archives are
       currently linux/amd64 only; select per-OS/arch via `http_archive` +
       platform constraints (same gap as the TinyGo toolchain).
@@ -42,11 +48,27 @@ this repo to wasm and run them on each other. We get there incrementally.
 
 ## Toward self-hosting
 
+The north star: run the compilers/interpreters in this repo *inside* wasm. The
+catalog makes candidates easy to spot — a tool can run in wasm when its
+**implementation language** (GitHub's `language` field) targets wasm. Tractable
+today with our existing toolchains are the pure-Go entries (goja/otto = JS,
+GopherLua = Lua, wa-lang = a Go compiler with a native wasm backend), plus
+AssemblyScript.
+
+- [ ] **`asc` in wasm** (the AssemblyScript self-hosting milestone). The
+      frontend is portable JS, but the Binaryen backend calls the host's
+      `WebAssembly.instantiate`, so a plain JS-engine-in-wasm (QuickJS, goja)
+      can't host it. Needs a **WASI JS engine that implements the WebAssembly
+      API** — realistically SpiderMonkey (StarlingMonkey / ComponentizeJS),
+      which runs as a component (Wasmtime-only, breaking the 5-runtime
+      symmetry). Spike the engine first.
+- [ ] **A Go compiler/interpreter running itself in wasm** — the cleaner first
+      win, no nested-wasm backend: compile e.g. `wa-lang` (Go → `wasip1`) and
+      have it emit a `.wasm` from inside a runtime, or run `goja` (a Go JS
+      engine) in wasm to execute JavaScript. Reuses the golua pattern directly.
 - [ ] Compile a wasm runtime itself to wasm (e.g. a Go/Rust runtime via its own
       wasm target) and run a guest module under the wasm-compiled runtime
       (runtime-in-runtime).
-- [ ] Compile a compiler to wasm and use it to produce wasm from inside a
-      runtime.
 - [ ] WASI 0.2 / Component Model support where toolchains require it.
 
 ## Principles

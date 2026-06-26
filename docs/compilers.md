@@ -86,6 +86,50 @@ dependencies; transitive third-party deps would each need a `tinygo_go_package`.
 Worked example: [`interpreters/golua`](../interpreters/golua) builds the Lua
 interpreter with both standard Go and TinyGo.
 
+## AssemblyScript → wasm (`asc`)
+
+[AssemblyScript](https://www.assemblyscript.org) is a typed subset of TypeScript
+that compiles to WebAssembly. Its compiler, `asc`, is distributed as JavaScript:
+a portable frontend plus a [Binaryen](https://github.com/WebAssembly/binaryen)
+backend that is *itself* a wasm module. So the toolchain has two hermetic parts,
+both fetched as `http_archive`s in `MODULE.bazel` (**no system Node required**):
+
+- a prebuilt **Node.js** runtime (`@nodejs_linux_amd64`) to execute `asc`, and
+- the npm tarballs `assemblyscript`, `binaryen`, `long`, and
+  `@assemblyscript/wasi-shim`.
+
+The `assemblyscript_wasm` rule in
+[`compilers/assemblyscript/defs.bzl`](../compilers/assemblyscript/defs.bzl)
+assembles those packages into a `node_modules/` tree per build action (Node's
+ESM resolver needs a real tree; `NODE_PATH` doesn't apply) and runs `asc`:
+
+```python
+load("//compilers/assemblyscript:defs.bzl", "assemblyscript_wasm")
+
+assemblyscript_wasm(
+    name = "hello_as_wasm",
+    srcs = ["hello.ts"],
+    entry = "hello.ts",
+)
+```
+
+```sh
+bazel build //examples/hello-assemblyscript-wasm:hello_as_wasm
+bazel run   //examples/hello-assemblyscript-wasm:run            # on wazero
+bazel run   //examples/hello-assemblyscript-wasm:run_wasmtime   # ...or any of 5
+```
+
+By default the module is built as a WASI **command** via
+`@assemblyscript/wasi-shim`, so it has a `_start` and can `console.log` — it runs
+unmodified on all five runtimes, like the Go/TinyGo examples. Worked example:
+[`examples/hello-assemblyscript-wasm`](../examples/hello-assemblyscript-wasm).
+
+> **Toward self-hosting.** `asc` is the canonical "compiler that targets wasm",
+> but running `asc` *itself* in wasm is gated by its Binaryen backend, which
+> calls the host's `WebAssembly.instantiate`. A simple JS engine in wasm
+> (QuickJS, goja) can't host it; that needs a WASI JS engine implementing the
+> WebAssembly API (e.g. SpiderMonkey). See the [roadmap](roadmap.md).
+
 ## Adding another compiler
 
 1. Pick a target from the catalog (`kind == "compiler"`). High-value,

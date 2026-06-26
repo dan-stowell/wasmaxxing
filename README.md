@@ -30,6 +30,9 @@ bazel run //examples/hello-go-wasm:run_wamr       # WAMR iwasm (C)
 # Same, but compiled with TinyGo (much smaller module).
 bazel run //examples/hello-tinygo-wasm:run
 
+# Compile AssemblyScript (a typed TS subset) to wasm with asc (hermetic Node).
+bazel run //examples/hello-assemblyscript-wasm:run
+
 # Run a Lua interpreter that is itself compiled to wasm.
 bazel run //interpreters/golua:run_fib
 bazel run //interpreters/golua:run_fib_tinygo     # TinyGo build
@@ -75,6 +78,8 @@ Live vertical slices, all via `bazel run`:
   and run on **five runtimes** — wazero, Wasmtime, Wasmer, WasmEdge, and WAMR —
   the latter four fetched hermetically as prebuilt CLIs.
 - The same with **TinyGo** (`tinygo_wasm`, fetched hermetically) — ~4× smaller.
+- **AssemblyScript → wasm** via `asc`, driven by a hermetically fetched Node.js,
+  emitting a WASI command that also runs on all five runtimes.
 - A **Lua interpreter compiled to wasm** (go-lua) running scripts on every
   runtime (with the host script directory mounted), built with both standard Go
   and TinyGo.
