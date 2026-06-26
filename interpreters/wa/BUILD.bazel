@@ -1,0 +1,73 @@
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+# Run the Wa toolchain (compiled to wasm) on each runtime, compiling and running
+# the bundled hello.wa from a mounted directory. This is the self-hosting demo:
+# a wasm-targeting compiler + its embedded wazero runtime, executing inside an
+# outer wasm runtime -- wasm compiling and running wasm.
+#   bazel run //interpreters/wa:run_hello
+wazero_run(
+    name = "run_hello",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["/scripts/hello.wa"],
+    mounts = ["interpreters/wa/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# The compiler emitting WebAssembly text (WAT) from inside wasm, without running
+# it -- the "compiler that targets wasm, running in wasm" made explicit:
+#   bazel run //interpreters/wa:build_hello_wat
+wazero_run(
+    name = "build_hello_wat",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["-build", "/scripts/hello.wa"],
+    mounts = ["interpreters/wa/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+wasmtime_run(
+    name = "run_hello_wasmtime",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["/scripts/hello.wa"],
+    mounts = ["interpreters/wa/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# NOTE: the wa toolchain module is ~31 MB (a full compiler + embedded runtime).
+# Wasmer's ahead-of-time compiler takes many minutes on a module this large, and
+# WAMR's interpreter exhausts memory on it, so in practice this self-hosting demo
+# is comfortable on wazero, Wasmtime and WasmEdge. The wasmer/wamr targets are
+# kept for parity but are slow / may fail on this module size.
+wasmer_run(
+    name = "run_hello_wasmer",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["/scripts/hello.wa"],
+    mounts = ["interpreters/wa/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# WasmEdge: Go's wasip1 path resolution needs the guest mount at "/".
+wasmedge_run(
+    name = "run_hello_wasmedge",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["/hello.wa"],
+    mounts = ["interpreters/wa/examples:/"],
+    visibility = ["//visibility:public"],
+)
+
+wamr_run(
+    name = "run_hello_wamr",
+    data = ["examples/hello.wa"],
+    module = "//interpreters/wa/cmd/wa:wa_wasm",
+    module_args = ["/scripts/hello.wa"],
+    mounts = ["interpreters/wa/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)

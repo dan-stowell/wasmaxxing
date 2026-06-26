@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/go-lua v0.0.0-20250718183320-1e37f32ad7d0
 	github.com/dop251/goja v0.0.0-20260618133527-c9b2ea77db59
 	github.com/tetratelabs/wazero v1.12.0
+	wa-lang.org/wa v1.8.0
 )
 
 require (

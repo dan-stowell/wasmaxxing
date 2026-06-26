@@ -1,0 +1,25 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library")
+
+go_library(
+    name = "wa_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/interpreters/wa/cmd/wa",
+    visibility = ["//visibility:private"],
+    deps = ["@org_wa_lang_wa//api"],
+)
+
+go_binary(
+    name = "wa",
+    embed = [":wa_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# The Wa toolchain cross-compiled to GOOS=wasip1 GOARCH=wasm: a wasm-targeting
+# compiler plus its embedded wazero runtime, as a single .wasm module. Running
+# it compiles Wa source to wasm and executes it -- from inside an outer runtime.
+go_cross_binary(
+    name = "wa_wasm",
+    platform = "//platforms:wasip1_wasm",
+    target = ":wa",
+    visibility = ["//visibility:public"],
+)

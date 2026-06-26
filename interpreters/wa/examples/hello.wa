@@ -1,0 +1,15 @@
+// A Wa program. The `wa` toolchain that compiles and runs this is itself a
+// WebAssembly module — so this source is compiled to wasm and executed from
+// inside an outer wasm runtime.
+
+func main {
+	println("hello from Wa, compiled to wasm and run inside wasm")
+	println("fib(10) =", fib(10))
+}
+
+func fib(n: i32) => i32 {
+	if n < 2 {
+		return n
+	}
+	return fib(n-1) + fib(n-2)
+}
