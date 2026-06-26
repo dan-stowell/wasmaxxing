@@ -26,6 +26,9 @@ bazel run //interpreters/golua:run_fib
 # TinyGo -> wasm (about half the size), same demo:
 bazel run //interpreters/golua:run_fib_tinygo
 
+# The same interpreter + mounted script on the other runtimes:
+bazel run //interpreters/golua:run_fib_wasmtime   # also _wasmer, _wasmedge, _wamr
+
 # Run your own snippet through the wasm interpreter via stdin:
 echo 'print("hi", 6*7)' | \
   $(bazel cquery --output=files //runtimes/wazero/cmd/wazero-run) \

@@ -17,13 +17,20 @@ this repo to wasm and run them on each other. We get there incrementally.
 - [x] **Run an interpreter in wasm**: `interpreters/golua`, a Lua 5.2 VM
       (go-lua) compiled to wasm with both standard Go and TinyGo, running
       scripts on wazero.
+- [x] **Four more runtimes** as `bazel run` targets: Wasmtime, Wasmer,
+      WasmEdge, and WAMR (`iwasm`), fetched as prebuilt CLIs and wrapped by a
+      shared `cli_wasm_run` rule. Every hello/golua example now runs unmodified
+      on all five runtimes, including host directory mounts.
 
 ## Next
 
 - [ ] **More compilers → wasm**, each with a runnable example:
       Rust (`wasm32-wasip1`), AssemblyScript, Emscripten (C/C++).
-- [ ] **More runtimes** as `bazel run` targets: Wasmtime, Wasmer, WasmEdge,
-      WAMR. Track which need system toolchains vs. fetch prebuilt.
+- [ ] **Cross-platform runtime fetch**: the prebuilt runtime archives are
+      currently linux/amd64 only; select per-OS/arch via `http_archive` +
+      platform constraints (same gap as the TinyGo toolchain).
+- [ ] **AOT-compile** modules where runtimes support it (`wasmedgec`,
+      `wasmer compile`, `wamrc`) for faster startup as a separate Bazel action.
 - [ ] **More interpreters in wasm**: a Lox or Scheme; richer Lua demos (read
       scripts from argv with FS mounts — already supported by `wazero-run -dir`).
 - [ ] **Tools on wasm**: wabt/wasm-tools for inspect/validate/optimize; wire as

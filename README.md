@@ -21,12 +21,19 @@ bazel test //...
 # Compile a Go program to wasm (standard Go) and run it on the wazero runtime.
 bazel run //examples/hello-go-wasm:run
 
+# Run the very same module on four other mature runtimes — fetched hermetically.
+bazel run //examples/hello-go-wasm:run_wasmtime   # Wasmtime  (Rust)
+bazel run //examples/hello-go-wasm:run_wasmer     # Wasmer    (Rust)
+bazel run //examples/hello-go-wasm:run_wasmedge   # WasmEdge  (C++)
+bazel run //examples/hello-go-wasm:run_wamr       # WAMR iwasm (C)
+
 # Same, but compiled with TinyGo (much smaller module).
 bazel run //examples/hello-tinygo-wasm:run
 
 # Run a Lua interpreter that is itself compiled to wasm.
 bazel run //interpreters/golua:run_fib
-bazel run //interpreters/golua:run_fib_tinygo   # TinyGo build
+bazel run //interpreters/golua:run_fib_tinygo     # TinyGo build
+bazel run //interpreters/golua:run_fib_wasmtime   # ...also on Wasmtime, etc.
 
 # Regenerate the ecosystem catalog from the seed lists.
 bazel run //pipeline/cmd/build-catalog
@@ -43,7 +50,7 @@ A C/C++ toolchain is only needed for the (future) C/C++-based pieces.
 |------|----------|
 | [`pipeline/`](pipeline/) | Data pipeline: parses the seed "awesome" lists and enriches them with GitHub metadata into [`data/catalog.json`](data/catalog.json). |
 | [`data/`](data/) | Committed seed sources and the generated catalog. |
-| [`runtimes/`](runtimes/) | wasm runtimes wrapped as `bazel run` targets (currently **wazero**). |
+| [`runtimes/`](runtimes/) | wasm runtimes wrapped as `bazel run` targets: **wazero**, **Wasmtime**, **Wasmer**, **WasmEdge**, **WAMR**. |
 | [`compilers/`](compilers/) | Toolchains that emit wasm (Bazel rules/macros). |
 | [`interpreters/`](interpreters/) | Interpreters that run *in* wasm. |
 | [`tools/`](tools/) | Tools that operate on wasm modules. |
@@ -65,9 +72,11 @@ A C/C++ toolchain is only needed for the (future) C/C++-based pieces.
 Live vertical slices, all via `bazel run`:
 
 - A Go program **compiled to wasm by Bazel** (`go_cross_binary`, `GOOS=wasip1`)
-  and run on **wazero**.
+  and run on **five runtimes** — wazero, Wasmtime, Wasmer, WasmEdge, and WAMR —
+  the latter four fetched hermetically as prebuilt CLIs.
 - The same with **TinyGo** (`tinygo_wasm`, fetched hermetically) — ~4× smaller.
-- A **Lua interpreter compiled to wasm** (go-lua) running scripts on wazero,
-  built with both standard Go and TinyGo.
+- A **Lua interpreter compiled to wasm** (go-lua) running scripts on every
+  runtime (with the host script directory mounted), built with both standard Go
+  and TinyGo.
 
 The data pipeline catalogs **500+** ecosystem entries.
