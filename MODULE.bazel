@@ -64,6 +64,53 @@ http_archive(
     build_file = "//runtimes/wamr:wamr.BUILD",
 )
 
+# --- AssemblyScript compiler toolchain (Node + npm packages) ----------------
+# `asc` is distributed as JavaScript, so we fetch a prebuilt Node.js runtime to
+# drive it, plus the asc bundle and its runtime deps (binaryen backend, long,
+# and the WASI shim that turns AS modules into runnable WASI commands). The
+# assemblyscript_wasm rule (see //compilers/assemblyscript) assembles these into
+# a node_modules/ tree at build time. linux/x64 only, like the other prebuilts.
+
+http_archive(
+    name = "nodejs_linux_amd64",
+    urls = ["https://nodejs.org/dist/v22.23.1/node-v22.23.1-linux-x64.tar.xz"],
+    sha256 = "9749e988f437343b7fa832c69ded82a312e41a03116d766797ac14f6f9eee578",
+    strip_prefix = "node-v22.23.1-linux-x64",
+    build_file = "//compilers/assemblyscript:nodejs.BUILD",
+)
+
+http_archive(
+    name = "npm_assemblyscript",
+    urls = ["https://registry.npmjs.org/assemblyscript/-/assemblyscript-0.28.19.tgz"],
+    sha256 = "39cb61ff891eff3f376e827dafcdedb47bf37bd3a59fd6bb185e1c32f6804cb1",
+    strip_prefix = "package",
+    build_file = "//compilers/assemblyscript:npm_package.BUILD",
+)
+
+http_archive(
+    name = "npm_binaryen",
+    urls = ["https://registry.npmjs.org/binaryen/-/binaryen-130.0.0-nightly.20260609.tgz"],
+    sha256 = "014031d5b549ddac7b768729c78cbea676b1bbd1a2c2ed5cca9401d0ae34f8bc",
+    strip_prefix = "package",
+    build_file = "//compilers/assemblyscript:npm_package.BUILD",
+)
+
+http_archive(
+    name = "npm_long",
+    urls = ["https://registry.npmjs.org/long/-/long-5.2.4.tgz"],
+    sha256 = "881b68e05deaef4ec36dd8e6157e001337c58a8bd9b14c96713cf2be70fdc76c",
+    strip_prefix = "package",
+    build_file = "//compilers/assemblyscript:npm_package.BUILD",
+)
+
+http_archive(
+    name = "npm_assemblyscript_wasi_shim",
+    urls = ["https://registry.npmjs.org/@assemblyscript/wasi-shim/-/wasi-shim-0.1.0.tgz"],
+    sha256 = "e8b4410255e6f86cb96c2ce1d191fa9a6b45d274f0f506c4132e8075634ea005",
+    strip_prefix = "package",
+    build_file = "//compilers/assemblyscript:npm_package.BUILD",
+)
+
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 

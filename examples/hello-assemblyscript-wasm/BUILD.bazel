@@ -1,0 +1,45 @@
+load("//compilers/assemblyscript:defs.bzl", "assemblyscript_wasm")
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+# Compile AssemblyScript -> wasm with `asc` (hermetic Node.js, no system Node).
+assemblyscript_wasm(
+    name = "hello_as_wasm",
+    srcs = ["hello.ts"],
+    entry = "hello.ts",
+    visibility = ["//visibility:public"],
+)
+
+# The same module runs unmodified on all five runtimes, e.g.:
+#   bazel run //examples/hello-assemblyscript-wasm:run            # wazero
+#   bazel run //examples/hello-assemblyscript-wasm:run_wasmtime   # Wasmtime
+#   bazel run //examples/hello-assemblyscript-wasm:run_wasmer     # Wasmer
+#   bazel run //examples/hello-assemblyscript-wasm:run_wasmedge   # WasmEdge
+#   bazel run //examples/hello-assemblyscript-wasm:run_wamr       # WAMR iwasm
+wazero_run(
+    name = "run",
+    module = ":hello_as_wasm",
+)
+
+wasmtime_run(
+    name = "run_wasmtime",
+    module = ":hello_as_wasm",
+)
+
+wasmer_run(
+    name = "run_wasmer",
+    module = ":hello_as_wasm",
+)
+
+wasmedge_run(
+    name = "run_wasmedge",
+    module = ":hello_as_wasm",
+)
+
+wamr_run(
+    name = "run_wamr",
+    module = ":hello_as_wasm",
+)

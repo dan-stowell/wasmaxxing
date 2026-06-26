@@ -1,0 +1,10 @@
+# AssemblyScript -> wasm toolchain. The asc compiler (JavaScript) is driven by a
+# hermetically fetched Node.js; defs.bzl provides the assemblyscript_wasm rule.
+# See MODULE.bazel for the @nodejs_linux_amd64 and @npm_* http_archives, and
+# nodejs.BUILD / npm_package.BUILD for their generated build files.
+
+exports_files([
+    "defs.bzl",
+    "nodejs.BUILD",
+    "npm_package.BUILD",
+])
