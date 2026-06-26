@@ -1,7 +1,8 @@
 # Interpreters (running in wasm)
 
-Interpreters compiled to wasm let you run scripts *inside* a wasm runtime — a
-step toward self-hosting language tools.
+Interpreters and compilers compiled to wasm let you run scripts — and even
+compile programs — *inside* a wasm runtime. With [`wa`](#wa--a-wasm-targeting-compiler-running-in-wasm-self-hosting)
+this reaches genuine self-hosting: a wasm-targeting compiler running in wasm.
 
 ## golua — a Lua interpreter on wasm
 
@@ -45,6 +46,41 @@ go-lua's `os.clock()` uses `syscall.Getrusage`, which doesn't exist on the
 ([`patches/go-lua-wasm.patch`](../patches/go-lua-wasm.patch), applied via
 `go_deps.module_override` in `MODULE.bazel`) swaps in a wall-clock fallback on
 wasm. See [pipeline.md](pipeline.md) and [compilers.md](compilers.md).
+
+## goja — a JavaScript engine on wasm
+
+[`interpreters/goja`](../interpreters/goja) wraps
+[dop251/goja](https://github.com/dop251/goja), a pure-Go ECMAScript 5.1+ engine.
+Compiled to wasm, it runs JavaScript from *inside* a WebAssembly module. The CLI
+provides a minimal host (`console.log`/`print`, an `argv` global) and runs a
+file, a `-e` snippet, or stdin:
+
+```sh
+bazel run //interpreters/goja:run_demo            # demo.js on wazero
+bazel run //interpreters/goja:run_demo_wasmtime   # ...or any of the five runtimes
+```
+
+The bundled `demo.js` runs unmodified on all five runtimes.
+
+## wa — a wasm-targeting compiler running *in* wasm (self-hosting)
+
+[`interpreters/wa`](../interpreters/wa) is the milestone: the
+[Wa language](https://wa-lang.org) toolchain (`wa-lang.org/wa`) is a pure-Go
+compiler with a **native wasm backend** plus a small embedded wazero runtime, so
+the whole thing cross-compiles to `wasip1`. A thin driver over its public `api`
+package compiles **and** runs Wa programs — meaning a compiler that targets
+WebAssembly is itself executing inside a WebAssembly runtime (wasm compiling and
+running wasm, no nested JS engine required, unlike `asc`).
+
+```sh
+bazel run //interpreters/wa:run_hello         # compile + run hello.wa, in wasm
+bazel run //interpreters/wa:build_hello_wat   # emit the compiled WAT, in wasm
+```
+
+The toolchain module is ~31 MB (a full compiler + runtime), which runs
+comfortably on **wazero, Wasmtime and WasmEdge**. Wasmer's ahead-of-time
+compiler is very slow on a module this size, and WAMR's interpreter exhausts
+memory, so those targets exist for parity but aren't the happy path here.
 
 ## Module sizes
 

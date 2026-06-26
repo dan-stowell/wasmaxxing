@@ -62,10 +62,13 @@ AssemblyScript.
       API** — realistically SpiderMonkey (StarlingMonkey / ComponentizeJS),
       which runs as a component (Wasmtime-only, breaking the 5-runtime
       symmetry). Spike the engine first.
-- [ ] **A Go compiler/interpreter running itself in wasm** — the cleaner first
-      win, no nested-wasm backend: compile e.g. `wa-lang` (Go → `wasip1`) and
-      have it emit a `.wasm` from inside a runtime, or run `goja` (a Go JS
-      engine) in wasm to execute JavaScript. Reuses the golua pattern directly.
+- [x] **A Go compiler/interpreter running itself in wasm** — done two ways:
+      `interpreters/wa` (the Wa toolchain — a Go compiler with a native wasm
+      backend + embedded wazero — compiles *and* runs Wa from inside a runtime,
+      and emits WAT via `build_hello_wat`), and `interpreters/goja` (a Go JS
+      engine running JavaScript in wasm). Both reuse the golua pattern. The wa
+      module is ~31 MB, so it's happy on wazero/Wasmtime/WasmEdge but slow on
+      Wasmer / too big for WAMR's interpreter.
 - [ ] Compile a wasm runtime itself to wasm (e.g. a Go/Rust runtime via its own
       wasm target) and run a guest module under the wasm-compiled runtime
       (runtime-in-runtime).

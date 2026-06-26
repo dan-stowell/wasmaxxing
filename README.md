@@ -38,6 +38,14 @@ bazel run //interpreters/golua:run_fib
 bazel run //interpreters/golua:run_fib_tinygo     # TinyGo build
 bazel run //interpreters/golua:run_fib_wasmtime   # ...also on Wasmtime, etc.
 
+# Run a JavaScript engine (goja) compiled to wasm — JS running inside wasm.
+bazel run //interpreters/goja:run_demo
+
+# Self-hosting: the Wa compiler (targets wasm) running INSIDE wasm — it compiles
+# and runs a Wa program, all from within an outer runtime.
+bazel run //interpreters/wa:run_hello
+bazel run //interpreters/wa:build_hello_wat       # emit the compiled WAT
+
 # Regenerate the ecosystem catalog from the seed lists.
 bazel run //pipeline/cmd/build-catalog
 ```
@@ -83,5 +91,9 @@ Live vertical slices, all via `bazel run`:
 - A **Lua interpreter compiled to wasm** (go-lua) running scripts on every
   runtime (with the host script directory mounted), built with both standard Go
   and TinyGo.
+- A **JavaScript engine compiled to wasm** (goja) running JS inside wasm.
+- **Self-hosting**: the **Wa compiler** — which targets wasm — compiled to wasm
+  and run inside a runtime, where it compiles *and* runs Wa programs (and can
+  emit the compiled WAT). A wasm-targeting compiler executing in WebAssembly.
 
 The data pipeline catalogs **500+** ecosystem entries.
