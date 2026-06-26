@@ -1,5 +1,9 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
 load("//compilers/tinygo:defs.bzl", "tinygo_wasm")
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
 load("//runtimes/wazero:defs.bzl", "wazero_run")
 
 # Compile to wasm with TinyGo (small modules, LLVM backend).
@@ -10,10 +14,34 @@ tinygo_wasm(
     visibility = ["//visibility:public"],
 )
 
-# Build the TinyGo wasm module and run it on wazero in one step:
-#   bazel run //examples/hello-tinygo-wasm:run
+# Build the TinyGo wasm module and run it on each runtime in one step, e.g.:
+#   bazel run //examples/hello-tinygo-wasm:run            # wazero (pure Go)
+#   bazel run //examples/hello-tinygo-wasm:run_wasmtime   # Wasmtime
+#   bazel run //examples/hello-tinygo-wasm:run_wasmer     # Wasmer
+#   bazel run //examples/hello-tinygo-wasm:run_wasmedge   # WasmEdge
+#   bazel run //examples/hello-tinygo-wasm:run_wamr       # WAMR iwasm
 wazero_run(
     name = "run",
+    module = ":hello_tinygo_wasm",
+)
+
+wasmtime_run(
+    name = "run_wasmtime",
+    module = ":hello_tinygo_wasm",
+)
+
+wasmer_run(
+    name = "run_wasmer",
+    module = ":hello_tinygo_wasm",
+)
+
+wasmedge_run(
+    name = "run_wasmedge",
+    module = ":hello_tinygo_wasm",
+)
+
+wamr_run(
+    name = "run_wamr",
     module = ":hello_tinygo_wasm",
 )
 

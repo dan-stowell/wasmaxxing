@@ -1,3 +1,7 @@
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
 load("//runtimes/wazero:defs.bzl", "wazero_run")
 
 # Run the Lua interpreter (compiled to wasm) on the wazero runtime, executing
@@ -19,6 +23,48 @@ wazero_run(
     name = "run_fib_tinygo",
     data = ["examples/fib.lua"],
     module = "//interpreters/golua/cmd/golua:golua_tinygo_wasm",
+    module_args = ["/scripts/fib.lua"],
+    mounts = ["interpreters/golua/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# The same Lua-on-wasm demo, with the script mounted from the host, on each of
+# the external CLI runtimes. This exercises WASI filesystem access (preopened
+# directories) across runtimes, not just stdio:
+#   bazel run //interpreters/golua:run_fib_wasmtime
+wasmtime_run(
+    name = "run_fib_wasmtime",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_wasm",
+    module_args = ["/scripts/fib.lua"],
+    mounts = ["interpreters/golua/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+wasmer_run(
+    name = "run_fib_wasmer",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_wasm",
+    module_args = ["/scripts/fib.lua"],
+    mounts = ["interpreters/golua/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# WasmEdge: Go's wasip1 path resolution only finds files when the guest mount
+# point is the filesystem root, so we mount at "/" and open "/fib.lua".
+wasmedge_run(
+    name = "run_fib_wasmedge",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_wasm",
+    module_args = ["/fib.lua"],
+    mounts = ["interpreters/golua/examples:/"],
+    visibility = ["//visibility:public"],
+)
+
+wamr_run(
+    name = "run_fib_wamr",
+    data = ["examples/fib.lua"],
+    module = "//interpreters/golua/cmd/golua:golua_wasm",
     module_args = ["/scripts/fib.lua"],
     mounts = ["interpreters/golua/examples:/scripts"],
     visibility = ["//visibility:public"],

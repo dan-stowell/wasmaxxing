@@ -28,14 +28,22 @@ def _cli_wasm_run_impl(ctx):
     module = ctx.file.module
     runner = ctx.file.runner
 
-    # Per-runtime mount translation. Input is HOST[:GUEST]; HOST is resolved
-    # against the runfiles base ($base) at run time.
+    # Per-runtime mount translation. Input is HOST[:GUEST].
+    #
+    # Bazel runfiles are symlinks pointing back into the source tree / bazel-out.
+    # wazero follows them transparently, but the stricter WASI sandboxes
+    # (Wasmtime, Wasmer, WasmEdge, WAMR) refuse to follow a symlink that escapes
+    # a preopened directory. So we materialize each mounted directory into a
+    # real, dereferenced copy under a temp dir at run time, and mount that.
+    materialize = []
     mount_tokens = []
-    for m in ctx.attr.mounts:
+    for i, m in enumerate(ctx.attr.mounts):
         host, _, guest = m.partition(":")
         if not guest:
             guest = host
-        value = ctx.attr.mount_value.replace("{host}", "$base/" + host).replace("{guest}", guest)
+        mdir = "$_tmproot/%d" % i
+        materialize.append('mkdir -p "{d}" && cp -RL "$base/{h}/." "{d}/"'.format(d = mdir, h = host))
+        value = ctx.attr.mount_value.replace("{host}", mdir).replace("{guest}", guest)
         if ctx.attr.mount_inline:
             mount_tokens.append(ctx.attr.mount_flag + value)
         else:
@@ -48,6 +56,24 @@ def _cli_wasm_run_impl(ctx):
     mounts_s = " ".join([repr(a) for a in mount_tokens])
     sep_s = " ".join([repr(a) for a in sep])
     extra_s = " ".join([repr(a) for a in ctx.attr.module_args])
+
+    invoke = '"$base/$RUNNER" {pre} {mounts} "$base/$MODULE" {sep} {extra} "$@"'.format(
+        pre = pre_s,
+        mounts = mounts_s,
+        sep = sep_s,
+        extra = extra_s,
+    )
+
+    if materialize:
+        # Set up a temp dir, populate the mounts, run (not exec, so the cleanup
+        # trap fires), and propagate the runtime's exit code.
+        run_block = """_tmproot="$(mktemp -d)"
+trap 'rm -rf "$_tmproot"' EXIT
+{materialize}
+{invoke}
+""".format(materialize = "\n".join(materialize), invoke = invoke)
+    else:
+        run_block = "exec " + invoke + "\n"
 
     script = ctx.actions.declare_file(ctx.label.name + ".sh")
     ctx.actions.write(
@@ -66,14 +92,10 @@ if [[ -f "$RUNFILES/_main/$MODULE" ]]; then
 else
   base="$(dirname "$0")"
 fi
-exec "$base/$RUNNER" {pre} {mounts} "$base/$MODULE" {sep} {extra} "$@"
-""".format(
+{run_block}""".format(
             runner = runner.short_path,
             module = module.short_path,
-            pre = pre_s,
-            mounts = mounts_s,
-            sep = sep_s,
-            extra = extra_s,
+            run_block = run_block,
         ),
     )
 
