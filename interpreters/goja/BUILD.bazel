@@ -1,0 +1,56 @@
+load("//runtimes/wamr:defs.bzl", "wamr_run")
+load("//runtimes/wasmedge:defs.bzl", "wasmedge_run")
+load("//runtimes/wasmer:defs.bzl", "wasmer_run")
+load("//runtimes/wasmtime:defs.bzl", "wasmtime_run")
+load("//runtimes/wazero:defs.bzl", "wazero_run")
+
+# Run the goja JavaScript engine (compiled to wasm) on each runtime, executing
+# the bundled demo.js from a mounted directory — JavaScript interpreted from
+# inside a WebAssembly module:
+#   bazel run //interpreters/goja:run_demo
+#   bazel run //interpreters/goja:run_demo -- /scripts/demo.js extra args
+wazero_run(
+    name = "run_demo",
+    data = ["examples/demo.js"],
+    module = "//interpreters/goja/cmd/goja:goja_wasm",
+    module_args = ["/scripts/demo.js"],
+    mounts = ["interpreters/goja/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+wasmtime_run(
+    name = "run_demo_wasmtime",
+    data = ["examples/demo.js"],
+    module = "//interpreters/goja/cmd/goja:goja_wasm",
+    module_args = ["/scripts/demo.js"],
+    mounts = ["interpreters/goja/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+wasmer_run(
+    name = "run_demo_wasmer",
+    data = ["examples/demo.js"],
+    module = "//interpreters/goja/cmd/goja:goja_wasm",
+    module_args = ["/scripts/demo.js"],
+    mounts = ["interpreters/goja/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)
+
+# WasmEdge: Go's wasip1 path resolution needs the guest mount at "/".
+wasmedge_run(
+    name = "run_demo_wasmedge",
+    data = ["examples/demo.js"],
+    module = "//interpreters/goja/cmd/goja:goja_wasm",
+    module_args = ["/demo.js"],
+    mounts = ["interpreters/goja/examples:/"],
+    visibility = ["//visibility:public"],
+)
+
+wamr_run(
+    name = "run_demo_wamr",
+    data = ["examples/demo.js"],
+    module = "//interpreters/goja/cmd/goja:goja_wasm",
+    module_args = ["/scripts/demo.js"],
+    mounts = ["interpreters/goja/examples:/scripts"],
+    visibility = ["//visibility:public"],
+)

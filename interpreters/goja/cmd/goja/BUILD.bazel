@@ -1,0 +1,25 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library")
+
+go_library(
+    name = "goja_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dan-stowell/wasmaxxing/interpreters/goja/cmd/goja",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_dop251_goja//:goja"],
+)
+
+go_binary(
+    name = "goja",
+    embed = [":goja_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# The goja JavaScript engine cross-compiled to GOOS=wasip1 GOARCH=wasm: an
+# entire ECMAScript VM as a single .wasm module, so JavaScript runs inside a
+# WebAssembly runtime.
+go_cross_binary(
+    name = "goja_wasm",
+    platform = "//platforms:wasip1_wasm",
+    target = ":goja",
+    visibility = ["//visibility:public"],
+)
